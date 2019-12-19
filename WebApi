@@ -1,1 +1,89 @@
 
+using LoginApplication.Models;
+using LoginApplication.Models.ViewModel;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+
+namespace LoginApplication.Controllers
+{
+
+
+    [RoutePrefix("Api/login")]
+    public class LoginController : ApiController
+    {
+        EmployeeEntities DB = new EmployeeEntities();
+        [Route("InsertEmployee")]
+        [HttpPost]
+        public object InsertEmployee(Register Reg)
+        {
+            try
+            {
+                EmployeeLogin EL = new EmployeeLogin();
+                if (EL.Id == 0)
+                {
+                    EL.EmployeeName = Reg.EmployeeName;
+                    EL.City = Reg.City;
+                    EL.Email = Reg.Email;
+                    EL.Password = Reg.Password;
+                    EL.Department = Reg.Department;
+                    DB.EmployeeLogins.Add(EL);
+                    DB.SaveChanges();
+                    return new Response
+                    { Status = "Success", Message = "Record SuccessFully Saved." };
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return new Response
+            { Status = "Error", Message = "Invalid Data." };
+        }
+        [Route("Login")]
+        [HttpPost]
+        public Response employeeLogin(Login login)
+        {
+            var log = DB.EmployeeLogins.Where(x => x.Email.Equals(login.Email) &&
+                      x.Password.Equals(login.Password)).FirstOrDefault();
+
+            if (log == null)
+            {
+                return new Response { Status = "Invalid", Message = "Invalid User." };
+            }
+            else
+                return new Response { Status = "Success", Message = "Login Successfully" };
+        }
+
+
+        //[Route("GetDetail")]
+        //[HttpPost]
+        //public List<Register> Get(int id)
+        //{
+        //    IQueryable<Register> query;
+        //    //return query = from Subjects in DB.EmployeeLogins.Where(v => v.Id == id).Select(s=>s.Id).ToList();
+
+        //    var queryResult = from Subjects in DB.EmployeeLogins.Where(v => v.Id == id).ToList();
+        //    return queryResult;
+        //}
+        [Route("GetDetail")]
+        [HttpGet]
+        public HttpResponseMessage Get()
+        {
+            List<Register> employeeList = new List<Register>();
+
+            {
+                var employeeList1 = DB.EmployeeLogins.OrderByDescending(a => a.EmployeeName).ToList();
+                HttpResponseMessage response;
+                response = Request.CreateResponse(HttpStatusCode.OK, employeeList1);
+                return response;
+            }
+        }
+
+    }
+    }
+
